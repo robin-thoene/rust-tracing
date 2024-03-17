@@ -1,5 +1,8 @@
+use std::net::SocketAddr;
+
 use axum::{
-    extract::{Path, Request},
+    extract::Path,
+    http::Request,
     middleware::{self, Next},
     response::Response,
     routing::get,
@@ -30,7 +33,7 @@ fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
         .install_batch(runtime::Tokio)
 }
 
-async fn otel_tracing_middleware(request: Request, next: Next) -> Response {
+async fn otel_tracing_middleware<B>(request: Request<B>, next: Next<B>) -> Response {
     let tracer = global::tracer("tracing-jaeger");
     let mut span = tracer
         .span_builder("todo-replace")
@@ -57,11 +60,11 @@ async fn main() {
     let app = Router::new()
         .route("/greet/:first_name/:last_name", get(greet_handler))
         .layer(middleware::from_fn(otel_tracing_middleware));
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:5000")
+    let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
+    println!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
         .await
         .unwrap();
-    println!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
-
     shutdown_tracer_provider();
 }
