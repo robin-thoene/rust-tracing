@@ -13,6 +13,7 @@ use opentelemetry::{
     trace::{Span, SpanKind, TraceError, Tracer},
     KeyValue,
 };
+use opentelemetry_http::HeaderExtractor;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{runtime, trace, Resource};
 
@@ -35,10 +36,13 @@ fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
 
 async fn otel_tracing_middleware<B>(request: Request<B>, next: Next<B>) -> Response {
     let tracer = global::tracer("tracing-jaeger");
+    let parent_cx = global::get_text_map_propagator(|propagator| {
+        propagator.extract(&HeaderExtractor(request.headers()))
+    });
     let mut span = tracer
         .span_builder("todo-replace")
         .with_kind(SpanKind::Server)
-        .start(&tracer);
+        .start_with_context(&tracer, &parent_cx);
     // TODO: handle tracing that is related to the request.
     let response = next.run(request).await;
     span.end();

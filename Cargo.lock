@@ -100,6 +100,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "opentelemetry",
+ "opentelemetry-http",
  "opentelemetry-otlp",
  "opentelemetry-semantic-conventions",
  "opentelemetry_sdk",
@@ -555,6 +556,18 @@ dependencies = [
  "pin-project-lite",
  "thiserror",
  "urlencoding",
+]
+
+[[package]]
+name = "opentelemetry-http"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cbfa5308166ca861434f0b0913569579b8e587430a3d6bcd7fd671921ec145a"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "http",
+ "opentelemetry",
 ]
 
 [[package]]
