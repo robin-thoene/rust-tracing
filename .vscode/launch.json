@@ -8,7 +8,7 @@
       "program": "${workspaceFolder}/target/debug/axum-api",
       "args": [],
       "cwd": "${workspaceFolder}/axum-api",
-      "preLaunchTask": "build axum-api"
+      "preLaunchTask": "build:axum-api"
     }
   ]
 }
