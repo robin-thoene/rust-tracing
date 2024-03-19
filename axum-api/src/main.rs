@@ -64,6 +64,14 @@ async fn otel_tracing_middleware<B>(
             request.uri().path().to_string(),
         ),
     ]);
+    // If the scheme can be parsed, trace it.
+    if let Some(scheme_str) = &request.uri().scheme_str() {
+        span.set_attribute(KeyValue::new(
+            opentelemetry_semantic_conventions::trace::URL_SCHEME,
+            scheme_str.to_string(),
+        ));
+    }
+    // If the request headers contain the user agent header, trace it.
     if let Some(user_agent_header) = &headers.get(USER_AGENT) {
         if let Ok(user_agent_header) = user_agent_header.to_str() {
             span.set_attribute(KeyValue::new(
