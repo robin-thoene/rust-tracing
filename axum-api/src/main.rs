@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use axum::{
     extract::{ConnectInfo, Path},
-    http::{header::USER_AGENT, HeaderMap, HeaderName, Request},
+    http::{header::USER_AGENT, HeaderMap, Request},
     middleware::{self, Next},
     response::Response,
     routing::get,
@@ -65,10 +65,12 @@ async fn otel_tracing_middleware<B>(
         ),
     ]);
     if let Some(user_agent_header) = &headers.get(USER_AGENT) {
-        span.set_attribute(KeyValue::new(
-            opentelemetry_semantic_conventions::trace::USER_AGENT_ORIGINAL,
-            user_agent_header.to_str().unwrap_or_default().to_string(),
-        ));
+        if let Ok(user_agent_header) = user_agent_header.to_str() {
+            span.set_attribute(KeyValue::new(
+                opentelemetry_semantic_conventions::trace::USER_AGENT_ORIGINAL,
+                user_agent_header.to_string(),
+            ));
+        }
     }
     // If the request contains a query, add it to the span as well.
     if let Some(query) = request.uri().query() {
