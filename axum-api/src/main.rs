@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use axum::{
-    extract::Path,
+    extract::{ConnectInfo, Path},
     http::Request,
     middleware::{self, Next},
     response::Response,
@@ -34,7 +34,11 @@ fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
         .install_batch(runtime::Tokio)
 }
 
-async fn otel_tracing_middleware<B>(request: Request<B>, next: Next<B>) -> Response {
+async fn otel_tracing_middleware<B>(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    request: Request<B>,
+    next: Next<B>,
+) -> Response {
     let tracer = global::tracer("tracing-jaeger");
     let parent_cx = global::get_text_map_propagator(|propagator| {
         propagator.extract(&HeaderExtractor(request.headers()))
@@ -44,6 +48,29 @@ async fn otel_tracing_middleware<B>(request: Request<B>, next: Next<B>) -> Respo
         .with_kind(SpanKind::Server)
         .start_with_context(&tracer, &parent_cx);
     // TODO: handle tracing that is related to the request.
+    span.set_attributes(vec![
+        KeyValue::new(
+            opentelemetry_semantic_conventions::trace::CLIENT_ADDRESS,
+            addr.ip().to_string(),
+        ),
+        KeyValue::new(
+            opentelemetry_semantic_conventions::trace::CLIENT_PORT,
+            addr.port().to_string(),
+        ),
+    ]);
+    let uri = request.uri();
+    let path = uri.path();
+    span.set_attribute(KeyValue::new(
+        opentelemetry_semantic_conventions::trace::URL_PATH,
+        path.to_string(),
+    ));
+    if let Some(query) = uri.query() {
+        span.set_attribute(KeyValue::new(
+            opentelemetry_semantic_conventions::trace::URL_QUERY,
+            query.to_string(),
+        ));
+    }
+
     let response = next.run(request).await;
     span.end();
     // TODO: handle tracing that is related to the response.
@@ -67,7 +94,7 @@ async fn main() {
     let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap();
     shutdown_tracer_provider();
