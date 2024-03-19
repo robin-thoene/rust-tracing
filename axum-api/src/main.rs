@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use axum::{
     extract::{ConnectInfo, Path},
-    http::Request,
+    http::{header::USER_AGENT, HeaderMap, HeaderName, Request},
     middleware::{self, Next},
     response::Response,
     routing::get,
@@ -36,18 +36,20 @@ fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
 
 async fn otel_tracing_middleware<B>(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
     request: Request<B>,
     next: Next<B>,
 ) -> Response {
     let tracer = global::tracer("tracing-jaeger");
     let parent_cx = global::get_text_map_propagator(|propagator| {
-        propagator.extract(&HeaderExtractor(request.headers()))
+        propagator.extract(&HeaderExtractor(&headers))
     });
     let mut span = tracer
         .span_builder("todo-replace")
         .with_kind(SpanKind::Server)
         .start_with_context(&tracer, &parent_cx);
     // TODO: handle tracing that is related to the request.
+    // Set some of the conventional span attributes.
     span.set_attributes(vec![
         KeyValue::new(
             opentelemetry_semantic_conventions::trace::CLIENT_ADDRESS,
@@ -57,14 +59,19 @@ async fn otel_tracing_middleware<B>(
             opentelemetry_semantic_conventions::trace::CLIENT_PORT,
             addr.port().to_string(),
         ),
+        KeyValue::new(
+            opentelemetry_semantic_conventions::trace::URL_PATH,
+            request.uri().path().to_string(),
+        ),
     ]);
-    let uri = request.uri();
-    let path = uri.path();
-    span.set_attribute(KeyValue::new(
-        opentelemetry_semantic_conventions::trace::URL_PATH,
-        path.to_string(),
-    ));
-    if let Some(query) = uri.query() {
+    if let Some(user_agent_header) = &headers.get(USER_AGENT) {
+        span.set_attribute(KeyValue::new(
+            opentelemetry_semantic_conventions::trace::USER_AGENT_ORIGINAL,
+            user_agent_header.to_str().unwrap_or_default().to_string(),
+        ));
+    }
+    // If the request contains a query, add it to the span as well.
+    if let Some(query) = request.uri().query() {
         span.set_attribute(KeyValue::new(
             opentelemetry_semantic_conventions::trace::URL_QUERY,
             query.to_string(),
@@ -72,8 +79,8 @@ async fn otel_tracing_middleware<B>(
     }
 
     let response = next.run(request).await;
-    span.end();
     // TODO: handle tracing that is related to the response.
+    span.end();
     response
 }
 
