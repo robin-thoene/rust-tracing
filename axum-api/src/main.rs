@@ -2,7 +2,10 @@ use std::net::SocketAddr;
 
 use axum::{
     extract::{ConnectInfo, Path},
-    http::{header::USER_AGENT, HeaderMap, Request},
+    http::{
+        header::{HOST, USER_AGENT},
+        HeaderMap, Request,
+    },
     middleware::{self, Next},
     response::Response,
     routing::get,
@@ -87,10 +90,30 @@ async fn otel_tracing_middleware<B>(
             query.to_string(),
         ));
     }
-
+    // If the request contains the host header, parse the host domain/ip and the port.
+    if let Some(host_header) = &headers.get(HOST) {
+        if let Ok(host_header) = host_header.to_str() {
+            let split: Vec<&str> = host_header.split(':').collect();
+            if let Some(server_address) = split.get(0) {
+                span.set_attribute(KeyValue::new(
+                    opentelemetry_semantic_conventions::trace::SERVER_ADDRESS,
+                    server_address.to_string(),
+                ));
+            }
+            if let Some(server_port) = split.get(1) {
+                span.set_attribute(KeyValue::new(
+                    opentelemetry_semantic_conventions::trace::SERVER_PORT,
+                    server_port.to_string(),
+                ));
+            }
+        }
+    }
+    // Process the request.
     let response = next.run(request).await;
     // TODO: handle tracing that is related to the response.
+    // End the span.
     span.end();
+    // Return the response.
     response
 }
 
