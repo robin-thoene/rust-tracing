@@ -1,11 +1,12 @@
 use std::net::SocketAddr;
 
-use axum::{extract::Path, middleware, routing::get, Router};
+use axum::{middleware, routing::get, Router};
 use opentelemetry::{global::shutdown_tracer_provider, trace::TraceError, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{runtime, trace, Resource};
 
 mod middlewares;
+mod routes;
 
 fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
     opentelemetry_otlp::new_pipeline()
@@ -24,19 +25,12 @@ fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
         .install_batch(runtime::Tokio)
 }
 
-async fn greet_handler(Path((first_name, last_name)): Path<(String, String)>) -> String {
-    format!(
-        "Hello {} {}, the axum-api server greets you!",
-        first_name, last_name
-    )
-}
-
 #[tokio::main]
 async fn main() {
     let _tracer = init_tracer().expect("Failed to initialize tracer.");
 
     let app = Router::new()
-        .route("/greet/:first_name/:last_name", get(greet_handler))
+        .route("/greet/:first_name/:last_name", get(routes::greet_handler))
         .layer(middleware::from_fn(middlewares::otel_tracing_middleware));
     let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
     println!("listening on {}", addr);
