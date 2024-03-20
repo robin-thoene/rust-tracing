@@ -104,7 +104,7 @@ async fn otel_tracing_middleware<B>(
     // Add response related data to the span.
     span.set_attribute(KeyValue::new(
         opentelemetry_semantic_conventions::trace::HTTP_RESPONSE_STATUS_CODE,
-        response.status().to_string(),
+        response.status().as_str().to_string(),
     ));
     // End the span.
     span.end();
