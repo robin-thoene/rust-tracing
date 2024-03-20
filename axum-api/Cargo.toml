@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.6"
+axum = { version = "0.6", features = ["headers"] }
 opentelemetry = "0.22.0"
 opentelemetry-http = "0.11.0"
 opentelemetry-otlp = { version = "0.15.0", features = ["tonic"] }
