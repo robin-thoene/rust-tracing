@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use axum::{
-    extract::{ConnectInfo, Path},
+    extract::{ConnectInfo, MatchedPath, Path},
     headers::{Host, UserAgent},
     http::{HeaderMap, Request},
     middleware::{self, Next},
@@ -40,15 +40,21 @@ async fn otel_tracing_middleware<B>(
     TypedHeader(user_agent): TypedHeader<UserAgent>,
     TypedHeader(host): TypedHeader<Host>,
     headers: HeaderMap,
+    matched_path: MatchedPath,
     request: Request<B>,
     next: Next<B>,
 ) -> Response {
     let tracer = global::tracer("tracing-jaeger");
+    let _test = matched_path.as_str().to_string();
     let parent_cx = global::get_text_map_propagator(|propagator| {
         propagator.extract(&HeaderExtractor(&headers))
     });
     let mut span = tracer
-        .span_builder("todo-replace")
+        .span_builder(format!(
+            "{} {}",
+            request.method().to_string(),
+            matched_path.as_str().to_string()
+        ))
         .with_kind(SpanKind::Server)
         .start_with_context(&tracer, &parent_cx);
     // Set some of the conventional span attributes.
@@ -76,6 +82,10 @@ async fn otel_tracing_middleware<B>(
         KeyValue::new(
             opentelemetry_semantic_conventions::trace::SERVER_ADDRESS,
             host.hostname().to_string(),
+        ),
+        KeyValue::new(
+            opentelemetry_semantic_conventions::trace::HTTP_ROUTE,
+            matched_path.as_str().to_string(),
         ),
     ]);
     // If the host port can be determined, trace it.
