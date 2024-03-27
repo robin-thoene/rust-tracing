@@ -105,6 +105,7 @@ dependencies = [
  "opentelemetry-otlp",
  "opentelemetry-semantic-conventions",
  "opentelemetry_sdk",
+ "shared",
  "tokio",
 ]
 
@@ -124,6 +125,10 @@ dependencies = [
  "tower-layer",
  "tower-service",
 ]
+
+[[package]]
+name = "axum-downstream-api"
+version = "0.1.0"
 
 [[package]]
 name = "backtrace"
@@ -1221,6 +1226,16 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "opentelemetry",
+ "opentelemetry-http",
+ "opentelemetry-semantic-conventions",
 ]
 
 [[package]]

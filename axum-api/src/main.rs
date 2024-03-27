@@ -8,8 +8,8 @@ use opentelemetry::{
 };
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace, Resource};
+use shared::middlewares::otel_tracing_middleware;
 
-mod middlewares;
 mod routes;
 
 fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
@@ -36,7 +36,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/greet/:first_name/:last_name", get(routes::greet_handler))
-        .layer(middleware::from_fn(middlewares::otel_tracing_middleware));
+        .layer(middleware::from_fn(otel_tracing_middleware));
     let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
