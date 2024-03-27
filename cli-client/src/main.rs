@@ -1,15 +1,16 @@
 use std::io;
 
-use reqwest::{header::USER_AGENT, Client, Error, Method, Response};
+use reqwest::{Error, Response};
 
 use opentelemetry::{
     global::{self, shutdown_tracer_provider},
-    trace::{Span, SpanKind, TraceContextExt, TraceError, Tracer},
-    Context, KeyValue,
+    trace::TraceError,
+    KeyValue,
 };
-use opentelemetry_http::HeaderInjector;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace, Resource};
+
+mod http_client;
 
 fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
     global::set_text_map_propagator(TraceContextPropagator::new());
@@ -30,45 +31,12 @@ fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
 }
 
 async fn perform_request() -> Result<Response, Error> {
-    // Get the tracer.
-    let tracer = global::tracer("tracing-jaeger");
-    // Create a new span.
-    let mut span = tracer
-        .span_builder("test")
-        .with_kind(SpanKind::Client)
-        .start(&tracer);
-    // Define what resource to access.
-    let server_address = "localhost";
-    let route = "greet/foo/bar?test=100";
-    let server_port = "5000";
-    let url_full = format!("http://{}:{}/{}", server_address, server_port, route);
-    // Set the default span attributes using the gathered information.
-    span.set_attributes(vec![
-        KeyValue::new(
-            opentelemetry_semantic_conventions::trace::SERVER_ADDRESS,
-            server_address,
-        ),
-        KeyValue::new(
-            opentelemetry_semantic_conventions::trace::SERVER_PORT,
-            server_port,
-        ),
-        KeyValue::new(
-            opentelemetry_semantic_conventions::trace::URL_FULL,
-            url_full.clone(),
-        ),
-    ]);
-    let http_client = Client::new();
-    let mut request = http_client
-        .request(Method::GET, url_full)
-        .header(USER_AGENT, "terminal")
-        .build()
-        .expect("Expect the request to be build.");
-    let cx = Context::current_with_span(span);
-    global::get_text_map_propagator(|propagator| {
-        propagator.inject_context(&cx, &mut HeaderInjector(request.headers_mut()))
-    });
-    let response = http_client.execute(request).await;
-    return response;
+    let http_client = http_client::TraceableHttpClient::new(
+        http_client::UriScheme::Http,
+        String::from("localhost"),
+        Some(5000),
+    );
+    return http_client.get("greet/foo/bar?q=test").await;
 }
 
 #[tokio::main]
