@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
-	"axum-api"
+	"axum-api", 
+	"cli-client"
 ]
 
 resolver = "2"

@@ -9,6 +9,15 @@
       "args": [],
       "cwd": "${workspaceFolder}/axum-api",
       "preLaunchTask": "build:axum-api"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug cli-client",
+      "program": "${workspaceFolder}/target/debug/cli-client",
+      "args": [],
+      "cwd": "${workspaceFolder}/cli-client",
+      "preLaunchTask": "build:cli-client"
     }
   ]
 }

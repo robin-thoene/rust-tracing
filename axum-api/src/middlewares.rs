@@ -29,11 +29,7 @@ pub async fn otel_tracing_middleware<B>(
         propagator.extract(&HeaderExtractor(&headers))
     });
     let mut span = tracer
-        .span_builder(format!(
-            "{} {}",
-            request.method().to_string(),
-            matched_path.as_str().to_string()
-        ))
+        .span_builder(format!("{} {}", request.method(), matched_path.as_str()))
         .with_kind(SpanKind::Server)
         .start_with_context(&tracer, &parent_cx);
     // Set some of the conventional span attributes.

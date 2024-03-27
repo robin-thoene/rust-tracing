@@ -1,14 +1,19 @@
 use std::net::SocketAddr;
 
 use axum::{middleware, routing::get, Router};
-use opentelemetry::{global::shutdown_tracer_provider, trace::TraceError, KeyValue};
+use opentelemetry::{
+    global::{self, shutdown_tracer_provider},
+    trace::TraceError,
+    KeyValue,
+};
 use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::{runtime, trace, Resource};
+use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace, Resource};
 
 mod middlewares;
 mod routes;
 
 fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
+    global::set_text_map_propagator(TraceContextPropagator::new());
     opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(
