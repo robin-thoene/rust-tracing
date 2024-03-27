@@ -43,7 +43,7 @@ impl TraceableHttpClient {
         let tracer = global::tracer("tracing-jaeger");
         // Create a new span.
         let mut span = tracer
-            .span_builder("TODO")
+            .span_builder("GET")
             .with_kind(SpanKind::Client)
             .start(&tracer);
         // Set the default span attributes using the gathered information.
@@ -69,8 +69,7 @@ impl TraceableHttpClient {
             .http_client
             .request(Method::GET, url_full)
             .header(USER_AGENT, "http-client")
-            .build()
-            .expect("Expect the request to be build for now.");
+            .build()?;
         // Inject the created span context into the request headers.
         let cx = Context::current_with_span(span);
         global::get_text_map_propagator(|propagator| {
