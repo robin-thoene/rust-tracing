@@ -43,7 +43,7 @@ impl TraceableHttpClient {
         let tracer = global::tracer("tracing-jaeger");
         // Create a new span.
         let mut span = tracer
-            .span_builder("GET")
+            .span_builder(Method::GET.as_str())
             .with_kind(SpanKind::Client)
             .start(&tracer);
         // Set the default span attributes using the gathered information.
@@ -55,6 +55,10 @@ impl TraceableHttpClient {
             KeyValue::new(
                 opentelemetry_semantic_conventions::trace::URL_FULL,
                 url_full.clone(),
+            ),
+            KeyValue::new(
+                opentelemetry_semantic_conventions::trace::HTTP_REQUEST_METHOD,
+                Method::GET.as_str(),
             ),
         ]);
         // If a server port is specified, trace it as well.
@@ -77,6 +81,19 @@ impl TraceableHttpClient {
         });
         // Send the request.
         let response = self.http_client.execute(request).await;
+        match response {
+            Ok(ref response) => {
+                // If the request was send and a response was retrieved successful, trace the
+                // response status code.
+                cx.span().set_attribute(KeyValue::new(
+                    opentelemetry_semantic_conventions::trace::HTTP_RESPONSE_STATUS_CODE,
+                    response.status().as_str().to_string(),
+                ));
+            }
+            _ => {}
+        }
+        // End the span.
+        cx.span().end();
         // Return the response.
         response
     }
