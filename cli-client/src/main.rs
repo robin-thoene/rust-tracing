@@ -10,7 +10,7 @@ mod http_client;
 async fn perform_request() -> Result<Response, Error> {
     let http_client = http_client::TraceableHttpClient::new(
         http_client::UriScheme::Http,
-        String::from("localhost"),
+        "localhost".to_string(),
         Some(5000),
     );
     return http_client.get("greet/foo/bar?q=test").await;
@@ -18,7 +18,7 @@ async fn perform_request() -> Result<Response, Error> {
 
 #[tokio::main]
 async fn main() {
-    let _tracer = init_tracer(String::from("cli-client")).expect("Failed to initialize tracer.");
+    let _tracer = init_tracer("cli-client".to_string()).expect("Failed to initialize tracer.");
 
     loop {
         let mut input = String::new();

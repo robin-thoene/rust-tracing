@@ -8,7 +8,7 @@ mod routes;
 
 #[tokio::main]
 async fn main() {
-    let _tracer = init_tracer(String::from("axum-api")).expect("Failed to initialize tracer.");
+    let _tracer = init_tracer("axum-api".to_string()).expect("Failed to initialize tracer.");
 
     let app = Router::new()
         .route("/greet/:first_name/:last_name", get(routes::greet_handler))
@@ -18,6 +18,6 @@ async fn main() {
     axum::Server::bind(&addr)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
-        .unwrap();
+        .expect("Server is expected to start.");
     shutdown_tracer_provider();
 }
