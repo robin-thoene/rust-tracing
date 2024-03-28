@@ -8,7 +8,6 @@ use reqwest::{header::USER_AGENT, Client, Error, Method, Response};
 
 pub enum UriScheme {
     Http,
-    Https,
 }
 pub struct TraceableHttpClient {
     http_client: Client,
@@ -26,7 +25,6 @@ impl TraceableHttpClient {
         };
         let scheme_str = match scheme {
             UriScheme::Http => "http",
-            UriScheme::Https => "https",
         };
         TraceableHttpClient {
             http_client: Client::new(),

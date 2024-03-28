@@ -7,4 +7,7 @@ edition = "2021"
 axum = { version = "0.6", features = ["headers"] }
 opentelemetry = "0.22.0"
 opentelemetry-http = "0.11.0"
+opentelemetry-otlp = "0.15.0"
 opentelemetry-semantic-conventions = "0.14.0"
+opentelemetry_sdk = { version = "0.22.1", features = ["rt-tokio"] }
+tokio = { version = "1.36.0", features = ["full"] } 

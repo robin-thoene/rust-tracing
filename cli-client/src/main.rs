@@ -2,33 +2,10 @@ use std::io;
 
 use reqwest::{Error, Response};
 
-use opentelemetry::{
-    global::{self, shutdown_tracer_provider},
-    trace::TraceError,
-    KeyValue,
-};
-use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace, Resource};
+use opentelemetry::global::shutdown_tracer_provider;
+use shared::tracer::init_tracer;
 
 mod http_client;
-
-fn init_tracer() -> Result<opentelemetry_sdk::trace::Tracer, TraceError> {
-    global::set_text_map_propagator(TraceContextPropagator::new());
-    opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(
-            opentelemetry_otlp::new_exporter()
-                .tonic()
-                .with_endpoint("http://localhost:4317"),
-        )
-        .with_trace_config(
-            trace::config().with_resource(Resource::new(vec![KeyValue::new(
-                opentelemetry_semantic_conventions::resource::SERVICE_NAME,
-                "cli-client",
-            )])),
-        )
-        .install_batch(runtime::Tokio)
-}
 
 async fn perform_request() -> Result<Response, Error> {
     let http_client = http_client::TraceableHttpClient::new(
@@ -41,7 +18,7 @@ async fn perform_request() -> Result<Response, Error> {
 
 #[tokio::main]
 async fn main() {
-    let _tracer = init_tracer().expect("Failed to initialize tracer.");
+    let _tracer = init_tracer(String::from("cli-client")).expect("Failed to initialize tracer.");
 
     loop {
         let mut input = String::new();
