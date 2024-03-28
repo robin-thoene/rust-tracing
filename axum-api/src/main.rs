@@ -12,6 +12,10 @@ async fn main() {
 
     let app = Router::new()
         .route("/greet/:first_name/:last_name", get(routes::greet_handler))
+        .route(
+            "/downstream-api-status",
+            get(routes::get_axum_downstream_api_status),
+        )
         .layer(middleware::from_fn(otel_tracing_middleware));
     let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
     println!("listening on {}", addr);

@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+axum = { version = "0.6", features = ["headers"] }
+opentelemetry = "0.22.0"
+tokio = "1.36.0"
+shared = { path = "../shared" }
