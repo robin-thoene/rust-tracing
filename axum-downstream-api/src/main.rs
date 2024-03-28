@@ -14,7 +14,7 @@ async fn main() {
     let app = Router::new()
         .route("/status", get(routes::status_handler))
         .layer(middleware::from_fn(otel_tracing_middleware));
-    let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 9000));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())

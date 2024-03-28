@@ -3,17 +3,15 @@ use std::io;
 use reqwest::{Error, Response};
 
 use opentelemetry::global::shutdown_tracer_provider;
-use shared::tracer::init_tracer;
-
-mod http_client;
+use shared::{traceable_http_client, tracer::init_tracer};
 
 async fn perform_request() -> Result<Response, Error> {
-    let http_client = http_client::TraceableHttpClient::new(
-        http_client::UriScheme::Http,
+    let http_client = traceable_http_client::TraceableHttpClient::new(
+        traceable_http_client::UriScheme::Http,
         "localhost".to_string(),
         Some(5000),
     );
-    return http_client.get("greet/foo/bar?q=test").await;
+    return http_client.get("downstream-api-status").await;
 }
 
 #[tokio::main]
