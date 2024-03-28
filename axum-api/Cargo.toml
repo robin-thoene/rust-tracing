@@ -8,3 +8,4 @@ axum = { version = "0.6", features = ["headers"] }
 opentelemetry = "0.22.0"
 tokio = "1.36.0"
 shared = { path = "../shared" }
+opentelemetry-http = "0.11.1"

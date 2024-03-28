@@ -34,16 +34,27 @@ impl TraceableHttpClient {
         }
     }
 
-    pub async fn get(&self, rel_endpoint_url: &str) -> Result<Response, Error> {
+    pub async fn get(
+        &self,
+        rel_endpoint_url: &str,
+        tracing_context: Option<Context>,
+    ) -> Result<Response, Error> {
         // Build the full URL.
         let url_full = format!("{}/{}", self.base_url, rel_endpoint_url);
         // Get the tracer.
         let tracer = global::tracer("tracing-jaeger");
         // Create a new span.
-        let mut span = tracer
-            .span_builder(Method::GET.as_str())
-            .with_kind(SpanKind::Client)
-            .start(&tracer);
+        let mut span = if let Some(context) = tracing_context {
+            tracer
+                .span_builder(Method::GET.as_str())
+                .with_kind(SpanKind::Client)
+                .start_with_context(&tracer, &context)
+        } else {
+            tracer
+                .span_builder(Method::GET.as_str())
+                .with_kind(SpanKind::Client)
+                .start(&tracer)
+        };
         // Set the default span attributes using the gathered information.
         span.set_attributes(vec![
             KeyValue::new(
