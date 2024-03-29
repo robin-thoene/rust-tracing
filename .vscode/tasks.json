@@ -12,6 +12,15 @@
     },
     {
       "type": "shell",
+      "label": "build:axum-downstream-api",
+      "command": "cargo",
+      "args": ["build"],
+      "options": {
+        "cwd": "${workspaceFolder}/axum-downstream-api"
+      }
+    },
+    {
+      "type": "shell",
       "label": "build:cli-client",
       "command": "cargo",
       "args": ["build"],
