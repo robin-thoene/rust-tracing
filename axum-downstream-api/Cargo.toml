@@ -1,5 +1,5 @@
 [package]
-name = "axum-api"
+name = "axum-downstream-api"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,3 @@ axum = { version = "0.6", features = ["headers"] }
 opentelemetry = "0.22.0"
 tokio = "1.36.0"
 shared = { path = "../shared" }
-opentelemetry-http = "0.11.1"

@@ -13,6 +13,15 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "Debug axum-downstream-api",
+      "program": "${workspaceFolder}/target/debug/axum-downstream-api",
+      "args": [],
+      "cwd": "${workspaceFolder}/axum-downstream-api",
+      "preLaunchTask": "build:axum-downstream-api"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "Debug cli-client",
       "program": "${workspaceFolder}/target/debug/cli-client",
       "args": [],

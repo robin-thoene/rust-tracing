@@ -8,16 +8,13 @@ mod routes;
 
 #[tokio::main]
 async fn main() {
-    let _tracer = init_tracer("axum-api".to_string()).expect("Failed to initialize tracer.");
+    let _tracer =
+        init_tracer("axum-downstream-api".to_string()).expect("Failed to initialize tracer.");
 
     let app = Router::new()
-        .route("/greet/:first_name/:last_name", get(routes::greet_handler))
-        .route(
-            "/downstream-api-status",
-            get(routes::get_axum_downstream_api_status),
-        )
+        .route("/status", get(routes::status_handler))
         .layer(middleware::from_fn(otel_tracing_middleware));
-    let addr = SocketAddr::from(([127, 0, 0, 1], 5000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 9000));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
