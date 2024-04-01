@@ -23,13 +23,11 @@ pub async fn get_axum_downstream_api_status(headers: HeaderMap) -> String {
     // Fetch the downstream API.
     let response = http_client.get("status", Some(parent_cx)).await;
     // Parse the response and ensure that the result will be a string.
-    let result = match response {
+    match response {
         Ok(res) => match res.text().await {
             Ok(value) => value,
             Err(err) => err.to_string(),
         },
         Err(err) => err.to_string(),
-    };
-    // Return the result.
-    result
+    }
 }
