@@ -10,8 +10,8 @@ use axum::{
 };
 use opentelemetry::{
     global,
-    trace::{Span, SpanKind, Tracer},
-    KeyValue,
+    trace::{Span, SpanKind, TraceContextExt, Tracer},
+    Context, KeyValue,
 };
 use opentelemetry_http::HeaderExtractor;
 
@@ -84,15 +84,18 @@ pub async fn otel_tracing_middleware<B>(
             query.to_string(),
         ));
     }
+    // Create a new context with the span to pass it further down the request pipeline.
+    let cx = Context::current().with_span(span);
     // Process the request.
-    let response = next.run(request).await;
+    let response =
+        opentelemetry::trace::FutureExt::with_context(next.run(request), cx.clone()).await;
     // Add response related data to the span.
-    span.set_attribute(KeyValue::new(
+    cx.span().set_attribute(KeyValue::new(
         opentelemetry_semantic_conventions::trace::HTTP_RESPONSE_STATUS_CODE,
         response.status().as_str().to_string(),
     ));
     // End the span.
-    span.end();
+    cx.span().end();
     // Return the response.
     response
 }

@@ -90,16 +90,13 @@ impl TraceableHttpClient {
         });
         // Send the request.
         let response = self.http_client.execute(request).await;
-        match response {
-            Ok(ref response) => {
-                // If the request was send and a response was retrieved successful, trace the
-                // response status code.
-                cx.span().set_attribute(KeyValue::new(
-                    opentelemetry_semantic_conventions::trace::HTTP_RESPONSE_STATUS_CODE,
-                    response.status().as_str().to_string(),
-                ));
-            }
-            _ => {}
+        if let Ok(ref res) = response {
+            // If the request was send and a response was retrieved successful, trace the
+            // response status code.
+            cx.span().set_attribute(KeyValue::new(
+                opentelemetry_semantic_conventions::trace::HTTP_RESPONSE_STATUS_CODE,
+                res.status().as_str().to_string(),
+            ));
         }
         // End the span.
         cx.span().end();

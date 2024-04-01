@@ -11,7 +11,7 @@ async fn perform_request() -> Result<Response, Error> {
         "localhost".to_string(),
         Some(5000),
     );
-    return http_client.get("downstream-api-status", None).await;
+    http_client.get("downstream-api-status?q=foo", None).await
 }
 
 #[tokio::main]

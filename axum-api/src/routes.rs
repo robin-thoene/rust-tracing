@@ -1,6 +1,5 @@
-use axum::{extract::Path, http::HeaderMap};
-use opentelemetry::global;
-use opentelemetry_http::HeaderExtractor;
+use axum::extract::Path;
+use opentelemetry::Context;
 use shared::traceable_http_client;
 
 pub async fn greet_handler(Path((first_name, last_name)): Path<(String, String)>) -> String {
@@ -10,10 +9,8 @@ pub async fn greet_handler(Path((first_name, last_name)): Path<(String, String)>
     )
 }
 
-pub async fn get_axum_downstream_api_status(headers: HeaderMap) -> String {
-    let parent_cx = global::get_text_map_propagator(|propagator| {
-        propagator.extract(&HeaderExtractor(&headers))
-    });
+pub async fn get_axum_downstream_api_status() -> String {
+    let parent_cx = Context::current();
     // Create the traceable HTTP client.
     let http_client = traceable_http_client::TraceableHttpClient::new(
         traceable_http_client::UriScheme::Http,
