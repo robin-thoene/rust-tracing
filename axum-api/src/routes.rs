@@ -1,5 +1,4 @@
 use axum::extract::Path;
-use opentelemetry::Context;
 use shared::traceable_http_client;
 
 pub async fn greet_handler(Path((first_name, last_name)): Path<(String, String)>) -> String {
@@ -10,7 +9,6 @@ pub async fn greet_handler(Path((first_name, last_name)): Path<(String, String)>
 }
 
 pub async fn get_axum_downstream_api_status() -> String {
-    let parent_cx = Context::current();
     // Create the traceable HTTP client.
     let http_client = traceable_http_client::TraceableHttpClient::new(
         traceable_http_client::UriScheme::Http,
@@ -18,7 +16,7 @@ pub async fn get_axum_downstream_api_status() -> String {
         Some(9000),
     );
     // Fetch the downstream API.
-    let response = http_client.get("status", Some(parent_cx)).await;
+    let response = http_client.get("status").await;
     // Parse the response and ensure that the result will be a string.
     match response {
         Ok(res) => match res.text().await {
