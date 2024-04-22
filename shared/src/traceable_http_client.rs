@@ -79,6 +79,7 @@ impl TraceableHttpClient {
         });
         // Send the request.
         let response = self.http_client.execute(request).await;
+        // TODO: handle non successful response as well by adding the status code.
         if let Ok(ref res) = response {
             // If the request was send and a response was retrieved successful, trace the
             // response status code.

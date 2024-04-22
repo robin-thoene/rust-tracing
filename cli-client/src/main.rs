@@ -37,6 +37,7 @@ async fn main() {
         println!("\"1\" - send request -> axum-api -> downstream-api-status");
         println!("\"2\" - send request -> axum-api -> greet/foo/bar");
         println!("\"3\" - send request -> axum-downstream-api -> status");
+        println!("\"4\" - send request -> dotnet-api -> weatherforecast");
 
         io::stdin()
             .read_line(&mut input)
