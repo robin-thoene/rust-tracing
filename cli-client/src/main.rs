@@ -9,12 +9,14 @@ use shared::{traceable_http_client, tracer::init_tracer};
 enum Api {
     AxumApi,
     AxumDownstreamApi,
+    DotnetApi,
 }
 
 async fn perform_request(api: &Api, relative_path: &str) -> Result<Response, Error> {
     let port = match api {
         Api::AxumApi => 5000,
         Api::AxumDownstreamApi => 9000,
+        Api::DotnetApi => 5240,
     };
     let http_client = traceable_http_client::TraceableHttpClient::new(
         traceable_http_client::UriScheme::Http,
@@ -66,6 +68,17 @@ async fn main() {
             "3" => {
                 println!("Sending http request ...");
                 let response = perform_request(&Api::AxumDownstreamApi, "status").await;
+                match response {
+                    Ok(response) => {
+                        let data = response.text().await;
+                        println!("Response: {:?}", data);
+                    }
+                    Err(err) => println!("Error: {}", err),
+                }
+            }
+            "4" => {
+                println!("Sending http request ...");
+                let response = perform_request(&Api::DotnetApi, "weatherforecast").await;
                 match response {
                     Ok(response) => {
                         let data = response.text().await;
