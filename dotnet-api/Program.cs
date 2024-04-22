@@ -1,4 +1,15 @@
+using OpenTelemetry;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
 var builder = WebApplication.CreateBuilder(args);
+// Setup open telemetry.
+const string serviceName = "dotnet-api";
+builder.Services.AddOpenTelemetry()
+    .UseOtlpExporter(OtlpExportProtocol.Grpc, new Uri("http://localhost:4317"))
+    .ConfigureResource(resource => resource.AddService(serviceName))
+    .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation());
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -23,7 +34,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
