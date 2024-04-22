@@ -3,9 +3,22 @@
   "tasks": [
     {
       "type": "shell",
+      "label": "build:dotnet-api",
+      "command": "dotnet",
+      "args": [
+        "build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/dotnet-api"
+      }
+    },
+    {
+      "type": "shell",
       "label": "build:axum-api",
       "command": "cargo",
-      "args": ["build"],
+      "args": [
+        "build"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/axum-api"
       }
@@ -14,7 +27,9 @@
       "type": "shell",
       "label": "build:axum-downstream-api",
       "command": "cargo",
-      "args": ["build"],
+      "args": [
+        "build"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/axum-downstream-api"
       }
@@ -23,7 +38,9 @@
       "type": "shell",
       "label": "build:cli-client",
       "command": "cargo",
-      "args": ["build"],
+      "args": [
+        "build"
+      ],
       "options": {
         "cwd": "${workspaceFolder}/cli-client"
       }

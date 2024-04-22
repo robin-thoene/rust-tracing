@@ -2,6 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug dotnet-api",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/dotnet-api/bin/Debug/net8.0/DotnetApi.dll",
+      "args": [
+        "urls=http://localhost:5240"
+      ],
+      "cwd": "${workspaceFolder}/dotnet-api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "preLaunchTask": "build:dotnet-api"
+    },
+    {
       "type": "lldb",
       "request": "launch",
       "name": "Debug axum-api",
