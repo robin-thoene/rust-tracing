@@ -1,4 +1,3 @@
-use core::panic;
 use std::io;
 
 use reqwest::{Error, Response};
@@ -7,16 +6,16 @@ use opentelemetry::global::shutdown_tracer_provider;
 use shared::{traceable_http_client, tracer::init_tracer};
 
 enum Api {
-    AxumApi,
-    AxumDownstreamApi,
-    DotnetApi,
+    Axum,
+    AxumDownstream,
+    Dotnet,
 }
 
 async fn perform_request(api: &Api, relative_path: &str) -> Result<Response, Error> {
     let port = match api {
-        Api::AxumApi => 5000,
-        Api::AxumDownstreamApi => 9000,
-        Api::DotnetApi => 5240,
+        Api::Axum => 5000,
+        Api::AxumDownstream => 9000,
+        Api::Dotnet => 5240,
     };
     let http_client = traceable_http_client::TraceableHttpClient::new(
         traceable_http_client::UriScheme::Http,
@@ -46,7 +45,7 @@ async fn main() {
             "q" => break,
             "1" => {
                 println!("Sending http request ...");
-                let response = perform_request(&Api::AxumApi, "downstream-api-status?q=foo").await;
+                let response = perform_request(&Api::Axum, "downstream-api-status?q=foo").await;
                 match response {
                     Ok(response) => {
                         let data = response.text().await;
@@ -57,7 +56,7 @@ async fn main() {
             }
             "2" => {
                 println!("Sending http request ...");
-                let response = perform_request(&Api::AxumApi, "greet/foo/bar").await;
+                let response = perform_request(&Api::Axum, "greet/foo/bar").await;
                 match response {
                     Ok(response) => {
                         let data = response.text().await;
@@ -68,7 +67,7 @@ async fn main() {
             }
             "3" => {
                 println!("Sending http request ...");
-                let response = perform_request(&Api::AxumDownstreamApi, "status").await;
+                let response = perform_request(&Api::AxumDownstream, "status").await;
                 match response {
                     Ok(response) => {
                         let data = response.text().await;
@@ -79,7 +78,7 @@ async fn main() {
             }
             "4" => {
                 println!("Sending http request ...");
-                let response = perform_request(&Api::DotnetApi, "weatherforecast").await;
+                let response = perform_request(&Api::Dotnet, "weatherforecast").await;
                 match response {
                     Ok(response) => {
                         let data = response.text().await;
