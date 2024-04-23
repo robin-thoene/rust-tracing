@@ -37,6 +37,7 @@ async fn main() {
         println!("\"2\" - send request -> axum-api -> greet/foo/bar");
         println!("\"3\" - send request -> axum-downstream-api -> status");
         println!("\"4\" - send request -> dotnet-api -> weatherforecast");
+        println!("\"5\" - send request -> dotnet-api -> downstream-api-status");
 
         io::stdin()
             .read_line(&mut input)
@@ -79,6 +80,17 @@ async fn main() {
             "4" => {
                 println!("Sending http request ...");
                 let response = perform_request(&Api::Dotnet, "weatherforecast").await;
+                match response {
+                    Ok(response) => {
+                        let data = response.text().await;
+                        println!("Response: {:?}", data);
+                    }
+                    Err(err) => println!("Error: {}", err),
+                }
+            }
+            "5" => {
+                println!("Sending http request ...");
+                let response = perform_request(&Api::Dotnet, "downstream-api-status").await;
                 match response {
                     Ok(response) => {
                         let data = response.text().await;
