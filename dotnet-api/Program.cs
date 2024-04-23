@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
@@ -41,10 +42,20 @@ app.MapGet("/weatherforecast", () =>
             summaries[Random.Shared.Next(summaries.Length)]
         ))
         .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    var random = new Random();
+    var randomBoolean = random.Next(2) == 0;
+    if (randomBoolean)
+    {
+        // Simulate an error.
+        var traceId = Activity.Current?.RootId;
+        return Results.Problem($"TraceId = {traceId}");
+    }
+    else
+    {
+        // Return normal response.
+        return Results.Ok(forecast);
+    }
+});
 app.MapGet("/downstream-api-status", async () =>
 {
     using var httpClient = new HttpClient();
