@@ -3,14 +3,29 @@ using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Logs;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 // Setup open telemetry.
 const string serviceName = "dotnet-api";
+
 builder.Services.AddOpenTelemetry()
     .UseOtlpExporter(OtlpExportProtocol.Grpc, new Uri("http://localhost:4317"))
     .ConfigureResource(resource => resource.AddService(serviceName))
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation());
+builder.Host.UseSerilog((ctx, services, config) =>
+    {
+        config.WriteTo.Console();
+        config.WriteTo.OpenTelemetry(opt =>
+        {
+            opt.Endpoint = "http://localhost:4317";
+            opt.ResourceAttributes.Add("service.name", serviceName);
+            opt.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+            opt.RestrictedToMinimumLevel = LogEventLevel.Warning;
+        });
+    });
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -25,14 +40,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
@@ -42,6 +55,8 @@ app.MapGet("/weatherforecast", () =>
             summaries[Random.Shared.Next(summaries.Length)]
         ))
         .ToArray();
+    logger.LogError("Testing logging ... {@foreacast}", forecast);
+
     var random = new Random();
     var randomBoolean = random.Next(2) == 0;
     if (randomBoolean)
