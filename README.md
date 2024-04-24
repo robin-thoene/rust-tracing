@@ -44,6 +44,12 @@ Start the [axum-api](./axum-api/).
 cargo run --bin axum-api
 ```
 
+Start the [dotnet-api](./dotnet-api/).
+
+```sh
+dotnet run --project ./dotnet-api/DotnetApi.csproj
+```
+
 Start the [cli-client](./cli-client/).
 
 ```sh
