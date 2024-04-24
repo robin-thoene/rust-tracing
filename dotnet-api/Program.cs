@@ -10,9 +10,9 @@ using Serilog.Events;
 var builder = WebApplication.CreateBuilder(args);
 // Setup open telemetry.
 const string serviceName = "dotnet-api";
-
+const string grpcEndpoint = "http://localhost:4317";
 builder.Services.AddOpenTelemetry()
-    .UseOtlpExporter(OtlpExportProtocol.Grpc, new Uri("http://localhost:4317"))
+    .UseOtlpExporter(OtlpExportProtocol.Grpc, new Uri(grpcEndpoint))
     .ConfigureResource(resource => resource.AddService(serviceName))
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation());
 builder.Host.UseSerilog((ctx, services, config) =>
@@ -20,7 +20,7 @@ builder.Host.UseSerilog((ctx, services, config) =>
         config.WriteTo.Console();
         config.WriteTo.OpenTelemetry(opt =>
         {
-            opt.Endpoint = "http://localhost:4317";
+            opt.Endpoint = grpcEndpoint;
             opt.ResourceAttributes.Add("service.name", serviceName);
             opt.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
             opt.RestrictedToMinimumLevel = LogEventLevel.Warning;
