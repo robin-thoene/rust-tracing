@@ -6,6 +6,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
 
+const string OTEL_TRACEID_RESP_HEADER_NAME = "trace_id";
 var builder = WebApplication.CreateBuilder(args);
 // Setup open telemetry.
 const string serviceName = "dotnet-api";
@@ -44,8 +45,10 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
+app.MapGet("/weatherforecast", (ILogger<Program> logger, HttpContext httpCtx) =>
 {
+    var traceId = Activity.Current?.RootId;
+    httpCtx.Response.Headers.Append(OTEL_TRACEID_RESP_HEADER_NAME, traceId);
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
@@ -61,8 +64,7 @@ app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
     if (randomBoolean)
     {
         // Simulate an error.
-        var traceId = Activity.Current?.RootId;
-        return Results.Problem($"TraceId = {traceId}");
+        return Results.Problem();
     }
     else
     {
@@ -70,8 +72,10 @@ app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
         return Results.Ok(forecast);
     }
 });
-app.MapGet("/downstream-api-status", async () =>
+app.MapGet("/downstream-api-status", async (HttpContext httpCtx) =>
 {
+    var traceId = Activity.Current?.RootId;
+    httpCtx.Response.Headers.Append(OTEL_TRACEID_RESP_HEADER_NAME, traceId);
     using var httpClient = new HttpClient();
     httpClient.BaseAddress = new Uri("http://localhost:9000");
     httpClient.DefaultRequestHeaders.Add("user-agent", "dotnet-http-client");
